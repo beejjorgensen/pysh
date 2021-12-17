@@ -1,8 +1,8 @@
+#!/usr/bin/env python3
+
 import sys, os
 
 def internal(args):
-    global done
-
     if args[0] == "cd":
         if len(args) != 2:
             print(f"usage: cd directory", file=sys.stderr)
