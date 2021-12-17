@@ -24,41 +24,54 @@ def internal(args):
                     print("exit: non-integer status", file=sys.stderr)
             else:
                 sys.exit(0)
-        return True
 
-    return False
+    else:
+        # Not an internal command
+        return False
 
-done = False
+    return True
 
-while not done:
+# Main loop
+
+while True:
+    # Get input
     try:
-        line = input("pysh$ ").strip()
+        line = input("pysh>> ").strip()
     except EOFError:
-        print()
-        done = True
-        continue
+        # Handle ^D
+        print()       # Makes things look nice
+        sys.exit(0)
 
     if line == "":
         continue
 
     args = line.split()
 
+    # Try internal commands, e.g. "cd" or "exit"
     if internal(args):
         continue
 
+    # Must be an external command
     try:
+        # Make a new process
         cid = os.fork()
     except OSError as e:
         print(f"fork: {e.strerror}", file=sys.stderr)
         continue
 
     if cid == 0:
+        # We're the child process
         try:
-            # child process
+            # Try to run the command
             os.execvp(args[0], args)
         except OSError as e:
             print(f"{args[0]}: {e.strerror}", file=sys.stderr)
+
+            # If the child gets here, the exec must have
+            # failed. So let's exit to keep the children
+            # from clogging up the main loop.
             sys.exit()
 
+    # Parent wait for child to complete
     os.wait()
 
