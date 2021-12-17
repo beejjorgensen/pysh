@@ -7,7 +7,10 @@ def internal(args):
         if len(args) != 2:
             print(f"usage: cd directory", file=sys.stderr)
         else:
-            os.chdir(args[1])
+            try:
+                os.chdir(args[1])
+            except Exception as e:
+                print(f"cd: {e.strerror}", file=sys.stderr)
         return True
 
     elif args[0] == "exit":
@@ -45,16 +48,16 @@ while not done:
 
     try:
         cid = os.fork()
-    except OSError:
-        print("pysh: fork failed", file=sys.stderr)
+    except OSError as e:
+        print(f"fork: {e.strerror}", file=sys.stderr)
         continue
 
     if cid == 0:
         try:
             # child process
             os.execvp(args[0], args)
-        except OSError:
-            print(f"{args[0]}: command not found", file=sys.stderr)
+        except OSError as e:
+            print(f"{args[0]}: {e.strerror}", file=sys.stderr)
             sys.exit()
 
     os.wait()
